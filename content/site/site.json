@@ -93,6 +93,7 @@
   "signup": {
     "url": "https://line.me/R/ti/p/@xinyue.yoga"
   },
+  "theme": { "button": "#7a8f73", "background": "#fffdf9", "section": "#f6f1ea" },
   "contact": {
     "tagline": "用呼吸連結身與心。",
     "email": "hello@example.com",

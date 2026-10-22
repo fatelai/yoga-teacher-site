@@ -6,6 +6,7 @@ const branch = process.env.GITHUB_BRANCH || process.env.GITHUB_REF_NAME || "main
 const text = (name: string, label: string, extra: object = {}) => ({ type: "string", name, label, ...extra });
 const textarea = (name: string, label: string) => text(name, label, { ui: { component: "textarea" } });
 const image = (name: string, label: string) => ({ type: "image", name, label });
+const color = (name: string, label: string) => text(name, label, { ui: { component: "color", colorFormat: "hex" } });
 const sectionHead = [text("eyebrow", "小標（英文）"), text("heading", "標題")];
 
 export default defineConfig({
@@ -122,6 +123,14 @@ export default defineConfig({
             type: "object", name: "signup", label: "報名連結",
             fields: [
               text("url", "報名連結網址（LINE、Google 表單等，所有報名按鈕都會連到這裡）"),
+            ],
+          },
+          {
+            type: "object", name: "theme", label: "網站配色",
+            fields: [
+              color("button", "按鈕色（也用在小標、課表表頭、報名區塊；按鈕字是白色，請選深一點的顏色）"),
+              color("background", "主背景色"),
+              color("section", "區塊背景色（課表等交錯區塊）"),
             ],
           },
           {

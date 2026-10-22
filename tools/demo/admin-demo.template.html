@@ -182,6 +182,7 @@ const STORE_KEY = "xinyue-cms-demo";
 const T = (k, l) => ({ k, l, t: "text" });
 const TA = (k, l) => ({ k, l, t: "textarea" });
 const IMG = (k, l) => ({ k, l, t: "image" });
+const COLOR = (k, l) => ({ k, l, t: "color" });
 const head = [T("eyebrow", "小標（英文）"), T("heading", "標題")];
 const SECTIONS = [
   { key: "hero", label: "首頁大圖區", fields: [T("eyebrow", "小標（英文）"), TA("title", "大標題（按 Enter 換行）"), TA("subtitle", "介紹文字（按 Enter 換行）"), IMG("image", "背景圖片"), T("primaryLabel", "報名按鈕文字"), T("secondaryLabel", "查看課程按鈕文字")] },
@@ -202,6 +203,7 @@ const SECTIONS = [
       of: [TA("quote", "回饋內容"), T("author", "學員")], add: { quote: "回饋內容", author: "學員" } }] },
   { key: "cta", label: "報名體驗課區塊", fields: [T("heading", "標題"), T("text", "說明"), T("button", "按鈕文字")] },
   { key: "signup", label: "報名連結", fields: [T("url", "報名連結網址（LINE、Google 表單等，所有報名按鈕都會連到這裡）")] },
+  { key: "theme", label: "網站配色", fields: [COLOR("button", "按鈕色（也用在小標、課表表頭、報名區塊；按鈕字是白色，請選深一點的顏色）"), COLOR("background", "主背景色"), COLOR("section", "區塊背景色（課表等交錯區塊）")] },
   { key: "contact", label: "頁尾與聯絡方式", fields: [T("tagline", "頁尾標語"), T("email", "Email"), T("phone", "電話"), T("line", "LINE"),
     { k: "socials", l: "社群連結", t: "list", itemLabel: i => i.label, addLabel: "新增連結", of: [T("label", "名稱"), T("url", "網址")], add: { label: "新連結", url: "#" } },
     T("copyright", "版權文字")] },
@@ -213,6 +215,8 @@ const SECTIONS = [
 const clone = o => JSON.parse(JSON.stringify(o));
 let saved = clone(DEFAULT);
 try { const s = localStorage.getItem(STORE_KEY); if (s) saved = JSON.parse(s); } catch {}
+// 舊版展示存的資料沒有配色，補上預設值
+saved.theme ??= clone(DEFAULT.theme);
 let state = clone(saved);
 let current = null;            // 目前開啟的區塊
 const expanded = new Set();    // 展開的清單項目路徑
@@ -255,6 +259,7 @@ function fieldHTML(f, path) {
   const v = get(path);
   if (f.t === "text") return `<div class="field"><label for="${id}">${f.l}</label><input type="text" id="${id}" data-path="${path}" value="${esc(v)}" /></div>`;
   if (f.t === "textarea") return `<div class="field"><label for="${id}">${f.l}</label><textarea id="${id}" data-path="${path}" rows="3">${esc(v)}</textarea></div>`;
+  if (f.t === "color") return `<div class="field"><label for="${id}">${f.l}</label><input type="color" id="${id}" data-path="${path}" value="${esc(v)}" /></div>`;
   if (f.t === "image") return `
     <div class="field"><span class="label">${f.l}</span>
       <div class="image-field">
@@ -405,10 +410,19 @@ function focusField(path) {
 const DAYS = [["mon", "週一"], ["tue", "週二"], ["wed", "週三"], ["thu", "週四"], ["fri", "週五"], ["sat", "週六"]];
 const F = p => `data-f="${p}"`;
 const SIGNUP = s => `href="${esc(s.signup.url || "#")}" target="_blank" rel="noopener"`;
+// 與正式版 Site.tsx 的 themeCSS 相同
+const HEX = /^#[0-9a-f]{6}$/i;
+const THEME = (t = {}) => {
+  const vars = [];
+  if (HEX.test(t.button || "")) vars.push(`--sage:${t.button}`, `--sage-dark:color-mix(in srgb, ${t.button} 75%, #000)`);
+  if (HEX.test(t.background || "")) vars.push(`--cream:${t.background}`);
+  if (HEX.test(t.section || "")) vars.push(`--sand:${t.section}`);
+  return vars.length ? `<style>:root{${vars.join(";")}}</style>` : "";
+};
 
 function siteHTML(s) {
   const { brand, hero, about, classes, schedule, testimonials, cta, signup, contact } = s;
-  return `
+  return `${THEME(s.theme)}
   <header class="nav" id="nav">
     <div class="container nav-inner">
       <a href="#top" class="logo" ${F("brand.name")}>${esc(brand.name)} <span>${esc(brand.suffix)}</span></a>

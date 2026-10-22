@@ -17,11 +17,21 @@ const Lines = ({ text }: { text?: string | null }) => (
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const asset = (src?: string | null) => (src && src.startsWith("/") ? BASE + src : src ?? "");
 
+// 後台「網站配色」蓋過 global.css 的顏色變數；只接受 #RRGGBB，沒填的沿用預設色
+const HEX = /^#[0-9a-f]{6}$/i;
+const themeCSS = (theme?: { button?: string | null; background?: string | null; section?: string | null } | null) => {
+  const vars: string[] = [];
+  if (theme?.button && HEX.test(theme.button)) vars.push(`--sage:${theme.button}`, `--sage-dark:color-mix(in srgb, ${theme.button} 75%, #000)`);
+  if (theme?.background && HEX.test(theme.background)) vars.push(`--cream:${theme.background}`);
+  if (theme?.section && HEX.test(theme.section)) vars.push(`--sand:${theme.section}`);
+  return vars.length ? `:root{${vars.join(";")}}` : "";
+};
+
 const DAYS =[["mon", "週一"], ["tue", "週二"], ["wed", "週三"], ["thu", "週四"], ["fri", "週五"], ["sat", "週六"]] as const;
 
 export default function Site(props: Props) {
   const { data } = useTina(props);
-  const { brand, hero, about, classes, schedule, testimonials, cta, signup, contact } = data.site;
+  const { brand, hero, about, classes, schedule, testimonials, cta, signup, theme, contact } = data.site;
 
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,6 +48,8 @@ export default function Site(props: Props) {
 
   return (
     <>
+      <style>{themeCSS(theme)}</style>
+
       {/* 導覽列 */}
       <header className={`nav${scrolled || menuOpen ? " scrolled" : ""}`}>
         <div className="container nav-inner">

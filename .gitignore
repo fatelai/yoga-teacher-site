@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.claude/
+public/admin/
+tina/__generated__/
+.env
+tools/demo/dist/
+.tmp-serve/
+release/

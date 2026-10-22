@@ -1,0 +1,643 @@
+<title>心悅 Yoga 後台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+/* 版面：左邊是編輯欄位，右邊是網站即時預覽；手機改成「編輯 / 預覽」切換 */
+:root {
+  --bg: #eef0eb;
+  --panel: #ffffff;
+  --fg: #23271f;
+  --muted: #69705f;
+  --line: #dde2d7;
+  --accent: #5c6f56;
+  --on-accent: #ffffff;
+  --accent-soft: #e6ece2;
+  --focus: #2f6fdf;
+  --danger: #b4533f;
+  --ui: "Noto Sans TC", system-ui, -apple-system, "Microsoft JhengHei", sans-serif;
+  --display: "Noto Serif TC", "Songti TC", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161915; --panel: #1f231e; --fg: #e8ebe4; --muted: #9ca394; --line: #31372e;
+    --accent: #a3bb98; --on-accent: #172014; --accent-soft: #2a3327; --focus: #79a6ff; --danger: #e48d78;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161915; --panel: #1f231e; --fg: #e8ebe4; --muted: #9ca394; --line: #31372e;
+  --accent: #a3bb98; --on-accent: #172014; --accent-soft: #2a3327; --focus: #79a6ff; --danger: #e48d78;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 14px; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.app { height: 100%; display: flex; flex-direction: column; }
+
+/* 上方工具列 */
+.topbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding-block: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.brand { font-family: var(--display); font-size: 17px; display: flex; align-items: baseline; gap: 8px; }
+.brand small { font-family: var(--ui); font-size: 12px; color: var(--muted); }
+.demo-pill { font-size: 12px; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.spacer { flex: 1; }
+.mode { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.mode button { border: 0; background: transparent; padding: 6px 12px; color: var(--muted); }
+.mode button[aria-pressed="true"] { background: var(--accent-soft); color: var(--fg); font-weight: 500; }
+.dirty { font-size: 12px; color: var(--muted); }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 7px 14px; }
+.btn:hover { border-color: var(--muted); }
+.btn-primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 500; }
+.btn-primary:disabled { opacity: .45; cursor: default; }
+.btn-danger { color: var(--danger); }
+
+/* 手機版切換 */
+.tabs { display: none; padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); background: var(--panel); border-bottom: 1px solid var(--line); gap: 8px; }
+.tabs button { flex: 1; border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 7px; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.main { flex: 1; display: grid; grid-template-columns: minmax(320px, 400px) 1fr; min-height: 0; }
+
+/* 左側編輯欄 */
+.sidebar { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; min-width: 0; }
+.crumbs { position: sticky; top: 0; z-index: 2; background: var(--panel); padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.crumbs button { border: 0; background: none; color: var(--accent); padding: 0; }
+.crumbs strong { color: var(--fg); font-weight: 500; }
+.section-list { list-style: none; margin: 0; padding: 12px; display: grid; gap: 8px; }
+.section-list button {
+  width: 100%; text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: 10px;
+  padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.section-list button:hover { border-color: var(--accent); }
+.section-list .hint { font-size: 12px; color: var(--muted); }
+.fields { padding: 16px; display: grid; gap: 16px; }
+.field { display: grid; gap: 6px; }
+.field > label, .field > .label { font-size: 13px; font-weight: 500; }
+.field input[type="text"], .field textarea {
+  width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg);
+}
+.field textarea { resize: vertical; min-height: 64px; line-height: 1.6; }
+.field input:focus, .field textarea:focus { outline: 2px solid var(--focus); outline-offset: 0; border-color: transparent; background: var(--panel); }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--focus) 45%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+
+.image-field { display: flex; gap: 12px; align-items: center; }
+.image-field img { width: 96px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+.image-field .stack { display: grid; gap: 6px; }
+.image-field small { color: var(--muted); font-size: 12px; }
+
+.list { display: grid; gap: 8px; }
+.item { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.item-head { display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 12px; }
+.item-head .toggle { flex: 1; text-align: left; border: 0; background: none; padding: 4px 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.icon-btn { border: 0; background: none; width: 30px; height: 30px; border-radius: 6px; color: var(--muted); }
+.icon-btn:hover { background: var(--accent-soft); color: var(--fg); }
+.icon-btn:disabled { opacity: .3; cursor: default; background: none; }
+.icon-btn.del:hover { color: var(--danger); }
+.item-body { padding: 4px 12px 14px; display: grid; gap: 12px; border-top: 1px solid var(--line); }
+.item-body .field > label { font-weight: 400; color: var(--muted); }
+.row { display: flex; gap: 4px; align-items: flex-start; }
+.row input, .row textarea { flex: 1; min-width: 0; }
+.add { border: 1px dashed var(--line); background: none; border-radius: 10px; padding: 8px; color: var(--accent); }
+.add:hover { border-color: var(--accent); }
+.grid-days { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+/* 右側預覽 */
+.preview { position: relative; min-width: 0; display: grid; grid-template-rows: auto 1fr; }
+.preview-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.preview-bar .url { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview iframe { width: 100%; height: 100%; border: 0; background: #fffdf9; display: block; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
+  background: var(--fg); color: var(--panel); padding: 10px 18px; border-radius: 10px; font-size: 13px;
+  opacity: 0; pointer-events: none; transition: .25s; max-width: calc(100% - 32px); text-align: center; z-index: 20;
+}
+.toast.show { opacity: 1; transform: translateX(-50%); }
+
+@media (max-width: 860px) {
+  .tabs { display: flex; }
+  .main { grid-template-columns: 1fr; }
+  .main[data-view="edit"] .preview { display: none; }
+  .main[data-view="preview"] .sidebar { display: none; }
+  .sidebar { border-right: 0; }
+  .brand small { display: none; }
+}
+@media (max-width: 560px) {
+  .dirty { display: none; }
+  .topbar { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash { animation: none; }
+  .toast { transition: none; }
+}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">心悅 Yoga <small>網站內容管理</small></div>
+    <span class="demo-pill">展示版</span>
+    <div class="spacer"></div>
+    <div class="mode" role="group" aria-label="預覽模式">
+      <button id="mode-edit" aria-pressed="true" title="點網頁上的文字或圖片，左邊會跳到對應欄位">點選編輯</button>
+      <button id="mode-try" aria-pressed="false" title="像訪客一樣操作網站">試用網站</button>
+    </div>
+    <span class="dirty" id="dirty">沒有未儲存的修改</span>
+    <button class="btn btn-danger" id="reset">重設</button>
+    <button class="btn btn-primary" id="save" disabled>儲存</button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-edit" aria-selected="true">編輯</button>
+    <button role="tab" id="tab-preview" aria-selected="false">預覽</button>
+  </div>
+
+  <div class="main" id="main" data-view="edit">
+    <aside class="sidebar" id="sidebar"></aside>
+    <section class="preview">
+      <div class="preview-bar"><span class="url">xinyue-yoga.netlify.app</span><span id="mode-hint">點網頁上的內容即可編輯</span></div>
+      <iframe id="frame" title="網站預覽"></iframe>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const DEFAULT = __DATA__;
+const SITE_CSS = __SITE_CSS__;
+const STORE_KEY = "xinyue-cms-demo";
+
+// ---------- 欄位設定（與正式版 tina/config.ts 相同） ----------
+const T = (k, l) => ({ k, l, t: "text" });
+const TA = (k, l) => ({ k, l, t: "textarea" });
+const IMG = (k, l) => ({ k, l, t: "image" });
+const head = [T("eyebrow", "小標（英文）"), T("heading", "標題")];
+const SECTIONS = [
+  { key: "hero", label: "首頁大圖區", fields: [T("eyebrow", "小標（英文）"), TA("title", "大標題（按 Enter 換行）"), TA("subtitle", "介紹文字（按 Enter 換行）"), IMG("image", "背景圖片"), T("primaryLabel", "報名按鈕文字"), T("secondaryLabel", "查看課程按鈕文字")] },
+  { key: "about", label: "關於我", fields: [...head, IMG("image", "老師照片"),
+    { k: "paragraphs", l: "介紹段落", t: "list", of: "textarea", add: "", addLabel: "新增段落" },
+    { k: "stats", l: "數字亮點", t: "list", of: [T("value", "數字"), T("label", "說明")], add: { value: "0", label: "新項目" }, itemLabel: i => `${i.value} ${i.label}`, addLabel: "新增數字" },
+    { k: "certs", l: "證照", t: "list", of: "text", add: "新證照", addLabel: "新增證照" }] },
+  { key: "classes", label: "課程介紹", fields: [...head, T("intro", "說明文字"),
+    { k: "items", l: "課程", t: "list", itemLabel: i => i.title || "（未命名課程）", addLabel: "新增課程",
+      of: [T("title", "課程名稱"), T("tag", "標籤（例如：初學友善）"), TA("description", "課程說明"), T("duration", "時長"), T("price", "價格"), IMG("image", "課程圖片")],
+      add: () => ({ title: "新課程", tag: "", description: "課程說明", duration: "60 分鐘", price: "NT$ 0 / 堂", image: DEFAULT.classes.items[0].image }) }] },
+  { key: "schedule", label: "每週課表", fields: [...head, T("note", "地點說明"),
+    { k: "rows", l: "時段", t: "list", itemLabel: i => i.time || "（未填時間）", addLabel: "新增時段", days: true,
+      of: [T("time", "時間"), T("mon", "週一"), T("tue", "週二"), T("wed", "週三"), T("thu", "週四"), T("fri", "週五"), T("sat", "週六")],
+      add: { time: "00:00", mon: "", tue: "", wed: "", thu: "", fri: "", sat: "" } }] },
+  { key: "testimonials", label: "學員回饋", fields: [...head,
+    { k: "items", l: "回饋", t: "list", itemLabel: i => i.author || "（未填學員）", addLabel: "新增回饋",
+      of: [TA("quote", "回饋內容"), T("author", "學員")], add: { quote: "回饋內容", author: "學員" } }] },
+  { key: "cta", label: "報名體驗課區塊", fields: [T("heading", "標題"), T("text", "說明"), T("button", "按鈕文字")] },
+  { key: "signup", label: "報名連結", fields: [T("url", "報名連結網址（LINE、Google 表單等，所有報名按鈕都會連到這裡）")] },
+  { key: "contact", label: "頁尾與聯絡方式", fields: [T("tagline", "頁尾標語"), T("email", "Email"), T("phone", "電話"), T("line", "LINE"),
+    { k: "socials", l: "社群連結", t: "list", itemLabel: i => i.label, addLabel: "新增連結", of: [T("label", "名稱"), T("url", "網址")], add: { label: "新連結", url: "#" } },
+    T("copyright", "版權文字")] },
+  { key: "brand", label: "Logo 文字", fields: [T("name", "主要文字"), T("suffix", "副文字")] },
+  { key: "seo", label: "網頁標題與描述（Google 搜尋用）", fields: [T("title", "網頁標題"), TA("description", "網頁描述")] },
+];
+
+// ---------- 狀態 ----------
+const clone = o => JSON.parse(JSON.stringify(o));
+let saved = clone(DEFAULT);
+try { const s = localStorage.getItem(STORE_KEY); if (s) saved = JSON.parse(s); } catch {}
+let state = clone(saved);
+let current = null;            // 目前開啟的區塊
+const expanded = new Set();    // 展開的清單項目路徑
+let mode = "edit";
+let activePath = null;
+let revealActive = false;
+
+const get = (path) => path.split(".").reduce((o, k) => o?.[k], state);
+function set(path, value) {
+  const keys = path.split("."); const last = keys.pop();
+  keys.reduce((o, k) => o[k], state)[last] = value;
+  changed();
+}
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const lines = s => esc(s).replace(/\n/g, "<br />");
+
+const $ = id => document.getElementById(id);
+const sidebar = $("sidebar"), frame = $("frame");
+
+function changed() {
+  const dirty = JSON.stringify(state) !== JSON.stringify(saved);
+  $("save").disabled = !dirty;
+  $("dirty").textContent = dirty ? "有未儲存的修改" : "沒有未儲存的修改";
+  schedulePreview();
+}
+
+// ---------- 左側：區塊清單 ----------
+function renderHome() {
+  current = null;
+  sidebar.innerHTML = `
+    <div class="crumbs"><strong>網站內容</strong></div>
+    <ul class="section-list">
+      ${SECTIONS.map(s => `<li><button data-open="${s.key}"><span>${s.label}</span><span class="hint">編輯 ›</span></button></li>`).join("")}
+    </ul>`;
+}
+
+// ---------- 左側：欄位 ----------
+function fieldHTML(f, path) {
+  const id = `f:${path}`;
+  const v = get(path);
+  if (f.t === "text") return `<div class="field"><label for="${id}">${f.l}</label><input type="text" id="${id}" data-path="${path}" value="${esc(v)}" /></div>`;
+  if (f.t === "textarea") return `<div class="field"><label for="${id}">${f.l}</label><textarea id="${id}" data-path="${path}" rows="3">${esc(v)}</textarea></div>`;
+  if (f.t === "image") return `
+    <div class="field"><span class="label">${f.l}</span>
+      <div class="image-field">
+        <img src="${esc(v)}" alt="" />
+        <div class="stack">
+          <button class="btn" id="${id}" data-image="${path}">更換圖片</button>
+          <small>可上傳 JPG、PNG</small>
+        </div>
+      </div>
+    </div>`;
+  if (f.t === "list") return listHTML(f, path);
+  return "";
+}
+
+function listHTML(f, path) {
+  const arr = get(path) || [];
+  const objects = Array.isArray(f.of);
+  const rows = arr.map((item, i) => {
+    const p = `${path}.${i}`;
+    const tools = `
+      <button class="icon-btn" data-move="${p}" data-dir="-1" aria-label="上移" ${i === 0 ? "disabled" : ""}>↑</button>
+      <button class="icon-btn" data-move="${p}" data-dir="1" aria-label="下移" ${i === arr.length - 1 ? "disabled" : ""}>↓</button>
+      <button class="icon-btn del" data-del="${p}" aria-label="刪除">✕</button>`;
+    if (!objects) {
+      const id = `f:${p}`;
+      const input = f.of === "textarea"
+        ? `<textarea id="${id}" data-path="${p}" rows="4" aria-label="${f.l} ${i + 1}">${esc(item)}</textarea>`
+        : `<input type="text" id="${id}" data-path="${p}" value="${esc(item)}" aria-label="${f.l} ${i + 1}" />`;
+      return `<div class="row field">${input}${tools}</div>`;
+    }
+    const open = expanded.has(p);
+    let body = "";
+    if (open) {
+      const sub = f.days
+        ? fieldHTML(f.of[0], `${p}.${f.of[0].k}`) + `<div class="grid-days">${f.of.slice(1).map(sf => fieldHTML(sf, `${p}.${sf.k}`)).join("")}</div>`
+        : f.of.map(sf => fieldHTML(sf, `${p}.${sf.k}`)).join("");
+      body = `<div class="item-body">${sub}</div>`;
+    }
+    return `<div class="item" data-item="${p}">
+      <div class="item-head"><button class="toggle" data-toggle="${p}" aria-expanded="${open}">${open ? "▾" : "▸"} ${esc(f.itemLabel(item))}</button>${tools}</div>
+      ${body}
+    </div>`;
+  }).join("");
+  return `<div class="field"><span class="label">${f.l}</span><div class="list">${rows}
+    <button class="add" data-add="${path}">＋ ${f.addLabel}</button></div></div>`;
+}
+
+function renderSection(key) {
+  const s = SECTIONS.find(x => x.key === key);
+  current = key;
+  const scroll = sidebar.scrollTop;
+  sidebar.innerHTML = `
+    <div class="crumbs"><button data-home>‹ 網站內容</button> / <strong>${s.label}</strong></div>
+    <div class="fields">${s.fields.map(f => fieldHTML(f, `${key}.${f.k}`)).join("")}</div>`;
+  sidebar.scrollTop = scroll;
+}
+
+const findList = (path) => {
+  // 例如 classes.items → 對應的清單欄位設定
+  const [sec, k] = path.split(".");
+  return SECTIONS.find(s => s.key === sec).fields.find(f => f.k === k);
+};
+
+sidebar.addEventListener("input", e => {
+  const p = e.target.dataset.path;
+  if (!p) return;
+  set(p, e.target.value);
+  activePath = p;
+  // 清單標題跟著更新
+  const item = e.target.closest(".item");
+  if (item) {
+    const f = findList(item.dataset.item);
+    item.querySelector(".toggle").textContent = `▾ ${f.itemLabel(get(item.dataset.item))}`;
+  }
+});
+sidebar.addEventListener("focusin", e => {
+  const p = e.target.dataset.path || e.target.dataset.image;
+  if (p && p !== activePath) { activePath = p; revealActive = true; schedulePreview(); }
+});
+sidebar.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  const d = b.dataset;
+  if (d.open) { sidebar.scrollTop = 0; renderSection(d.open); }
+  else if ("home" in d) { renderHome(); }
+  else if (d.toggle) { expanded.has(d.toggle) ? expanded.delete(d.toggle) : expanded.add(d.toggle); renderSection(current); }
+  else if (d.add) {
+    const f = findList(d.add);
+    const arr = get(d.add);
+    arr.push(typeof f.add === "function" ? f.add() : clone(f.add));
+    const p = `${d.add}.${arr.length - 1}`;
+    if (Array.isArray(f.of)) expanded.add(p);
+    renderSection(current); changed(); focusField(p);
+  }
+  else if (d.del) {
+    const keys = d.del.split("."); const i = +keys.pop(); const listPath = keys.join(".");
+    get(listPath).splice(i, 1);
+    expanded.clear();
+    renderSection(current); changed();
+  }
+  else if (d.move) {
+    const keys = d.move.split("."); const i = +keys.pop(); const listPath = keys.join(".");
+    const arr = get(listPath); const j = i + +d.dir;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    const wasOpen = expanded.has(d.move); expanded.clear(); if (wasOpen) expanded.add(`${listPath}.${j}`);
+    renderSection(current); changed();
+  }
+  else if (d.image) { pickImage(d.image); }
+});
+
+// 上傳圖片（只在這個瀏覽器裡預覽）
+const fileInput = Object.assign(document.createElement("input"), { type: "file", accept: "image/*", hidden: true });
+document.body.appendChild(fileInput);
+let imageTarget = null;
+function pickImage(path) { imageTarget = path; fileInput.value = ""; fileInput.click(); }
+fileInput.addEventListener("change", () => {
+  const file = fileInput.files[0];
+  if (!file || !imageTarget) return;
+  const reader = new FileReader();
+  reader.onload = () => { set(imageTarget, reader.result); activePath = imageTarget; renderSection(current); toast("圖片已更換，記得按「儲存」"); };
+  reader.readAsDataURL(file);
+});
+
+// 從預覽點進來：打開對應區塊並聚焦欄位
+function focusField(path) {
+  const keys = path.split(".");
+  const sec = keys[0];
+  if (!SECTIONS.some(s => s.key === sec)) return;
+  // 若路徑在物件清單裡（例如 classes.items.2.title），展開那一項
+  if (keys.length >= 3 && /^\d+$/.test(keys[2])) {
+    const f = findList(keys.slice(0, 2).join("."));
+    if (f && Array.isArray(f.of)) expanded.add(keys.slice(0, 3).join("."));
+  }
+  renderSection(sec);
+  activePath = path;
+  setView("edit");
+  let el = document.getElementById(`f:${path}`);
+  if (!el) { const item = sidebar.querySelector(`[data-item="${path}"]`); el = item?.querySelector("input, textarea") || item; }
+  if (el) {
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.focus({ preventScroll: true });
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  }
+  schedulePreview();
+}
+
+// ---------- 右側：網站預覽 ----------
+const DAYS = [["mon", "週一"], ["tue", "週二"], ["wed", "週三"], ["thu", "週四"], ["fri", "週五"], ["sat", "週六"]];
+const F = p => `data-f="${p}"`;
+const SIGNUP = s => `href="${esc(s.signup.url || "#")}" target="_blank" rel="noopener"`;
+
+function siteHTML(s) {
+  const { brand, hero, about, classes, schedule, testimonials, cta, signup, contact } = s;
+  return `
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#top" class="logo" ${F("brand.name")}>${esc(brand.name)} <span>${esc(brand.suffix)}</span></a>
+      <button class="nav-toggle" aria-label="開啟選單"><span></span><span></span><span></span></button>
+      <nav class="nav-links">
+        <a href="#about">關於我</a><a href="#classes">課程</a><a href="#schedule">課表</a><a href="#testimonials">學員回饋</a><a href="#contact">聯絡</a>
+        <a class="btn btn-primary btn-sm" ${SIGNUP(s)} ${F("signup.url")}>立即報名</a>
+      </nav>
+    </div>
+  </header>
+  <section class="hero" id="top" ${F("hero.image")}>
+    <div class="hero-bg"><img src="${esc(hero.image)}" alt="瑜珈練習" /></div>
+    <div class="container hero-content">
+      <p class="eyebrow" ${F("hero.eyebrow")}>${esc(hero.eyebrow)}</p>
+      <h1 ${F("hero.title")}>${lines(hero.title)}</h1>
+      <p class="hero-sub" ${F("hero.subtitle")}>${lines(hero.subtitle)}</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" ${SIGNUP(s)} ${F("hero.primaryLabel")}>${esc(hero.primaryLabel)}</a>
+        <a href="#classes" class="btn btn-ghost" ${F("hero.secondaryLabel")}>${esc(hero.secondaryLabel)}</a>
+      </div>
+    </div>
+  </section>
+  <section class="section" id="about">
+    <div class="container about">
+      <div class="about-img" ${F("about.image")}><img src="${esc(about.image)}" alt="瑜珈老師照片" /></div>
+      <div class="about-text">
+        <p class="eyebrow" ${F("about.eyebrow")}>${esc(about.eyebrow)}</p>
+        <h2 ${F("about.heading")}>${esc(about.heading)}</h2>
+        ${about.paragraphs.map((p, i) => `<p ${F(`about.paragraphs.${i}`)}>${esc(p)}</p>`).join("")}
+        <ul class="stats">${about.stats.map((x, i) => `<li ${F(`about.stats.${i}`)}><strong>${esc(x.value)}</strong><span>${esc(x.label)}</span></li>`).join("")}</ul>
+        <div class="certs">${about.certs.map((c, i) => `<span ${F(`about.certs.${i}`)}>${esc(c)}</span>`).join("")}</div>
+      </div>
+    </div>
+  </section>
+  <section class="section section-alt" id="classes">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow" ${F("classes.eyebrow")}>${esc(classes.eyebrow)}</p>
+        <h2 ${F("classes.heading")}>${esc(classes.heading)}</h2>
+        <p ${F("classes.intro")}>${esc(classes.intro)}</p>
+      </div>
+      <div class="cards">${classes.items.map((c, i) => `
+        <article class="card">
+          <img src="${esc(c.image)}" alt="${esc(c.title)}" ${F(`classes.items.${i}.image`)} />
+          <div class="card-body">
+            ${c.tag ? `<span class="tag" ${F(`classes.items.${i}.tag`)}>${esc(c.tag)}</span>` : ""}
+            <h3 ${F(`classes.items.${i}.title`)}>${esc(c.title)}</h3>
+            <p ${F(`classes.items.${i}.description`)}>${esc(c.description)}</p>
+            <div class="card-meta"><span ${F(`classes.items.${i}.duration`)}>${esc(c.duration)}</span><span ${F(`classes.items.${i}.price`)}>${esc(c.price)}</span></div>
+            <a class="btn btn-primary btn-block" ${SIGNUP(s)}>報名此課程</a>
+          </div>
+        </article>`).join("")}
+      </div>
+    </div>
+  </section>
+  <section class="section" id="schedule">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow" ${F("schedule.eyebrow")}>${esc(schedule.eyebrow)}</p>
+        <h2 ${F("schedule.heading")}>${esc(schedule.heading)}</h2>
+        <p ${F("schedule.note")}>${esc(schedule.note)}</p>
+      </div>
+      <div class="table-wrap"><table class="schedule">
+        <thead><tr><th>時段</th>${DAYS.map(d => `<th>${d[1]}</th>`).join("")}</tr></thead>
+        <tbody>${schedule.rows.map((r, i) => `<tr ${F(`schedule.rows.${i}`)}><td>${esc(r.time)}</td>${DAYS.map(d => `<td>${esc(r[d[0]])}</td>`).join("")}</tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+  </section>
+  <section class="section section-alt" id="testimonials">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow" ${F("testimonials.eyebrow")}>${esc(testimonials.eyebrow)}</p>
+        <h2 ${F("testimonials.heading")}>${esc(testimonials.heading)}</h2>
+      </div>
+      <div class="quotes">${testimonials.items.map((t, i) => `<blockquote ${F(`testimonials.items.${i}`)}><p>「${esc(t.quote)}」</p><cite>— ${esc(t.author)}</cite></blockquote>`).join("")}</div>
+    </div>
+  </section>
+  <section class="cta">
+    <div class="container cta-inner">
+      <h2 ${F("cta.heading")}>${esc(cta.heading)}</h2>
+      <p ${F("cta.text")}>${esc(cta.text)}</p>
+      <a class="btn btn-light" ${SIGNUP(s)} ${F("cta.button")}>${esc(cta.button)}</a>
+    </div>
+  </section>
+  <footer class="footer" id="contact">
+    <div class="container footer-inner">
+      <div><a href="#top" class="logo">${esc(brand.name)} <span>${esc(brand.suffix)}</span></a><p ${F("contact.tagline")}>${esc(contact.tagline)}</p></div>
+      <div><h4>聯絡方式</h4>
+        <p ${F("contact.email")}>Email：${esc(contact.email)}</p>
+        <p ${F("contact.phone")}>電話：${esc(contact.phone)}</p>
+        <p ${F("contact.line")}>LINE：${esc(contact.line)}</p>
+      </div>
+      <div><h4>追蹤我</h4><p>${contact.socials.map((x, i) => `<a href="#" ${F(`contact.socials.${i}`)}>${esc(x.label)}</a>`).join(" · ")}</p></div>
+    </div>
+    <p class="copyright" ${F("contact.copyright")}>${esc(contact.copyright)}</p>
+  </footer>`;
+}
+
+// 預覽裡的編輯提示樣式
+const CMS_CSS = `
+  body.cms-edit [data-f] { cursor: pointer; }
+  body.cms-edit [data-f]:hover { outline: 2px dashed #2f6fdf; outline-offset: 3px; }
+  body.cms-edit .hero[data-f]:hover { outline-offset: -6px; }
+  [data-f].cms-active { outline: 2px solid #2f6fdf !important; outline-offset: 3px; }
+  body.cms-edit a, body.cms-edit button { pointer-events: auto; }
+`;
+
+let doc;
+function setupFrame() {
+  doc = frame.contentDocument;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" />
+    <style>${SITE_CSS}${CMS_CSS}</style></head><body class="cms-edit"></body></html>`);
+  doc.close();
+
+  const win = frame.contentWindow;
+  win.addEventListener("scroll", () => doc.getElementById("nav")?.classList.toggle("scrolled", win.scrollY > 40));
+
+  doc.addEventListener("click", e => {
+    if (mode === "edit") {
+      const el = e.target.closest("[data-f]");
+      e.preventDefault();
+      if (el) focusField(el.dataset.f);
+      return;
+    }
+    // 試用模式：像正式網站一樣運作
+    const a = e.target.closest('a[href^="#"]');
+    if (a) {
+      e.preventDefault();
+      const id = a.getAttribute("href").slice(1);
+      (id === "top" ? doc.body : doc.getElementById(id))?.scrollIntoView({ behavior: "smooth" });
+      doc.querySelector(".nav-links")?.classList.remove("open");
+      return;
+    }
+    if (e.target.closest(".nav-toggle")) { doc.querySelector(".nav-links").classList.toggle("open"); doc.getElementById("nav").classList.add("scrolled"); return; }
+  });
+}
+
+let pending = false;
+function schedulePreview() {
+  if (pending) return;
+  pending = true;
+  queueMicrotask(() => { pending = false; renderPreview(); });
+}
+function renderPreview() {
+  if (!doc?.body) return;
+  const win = frame.contentWindow;
+  const y = win.scrollY;
+  doc.title = state.seo.title;
+  doc.body.innerHTML = siteHTML(state);
+  doc.body.className = mode === "edit" ? "cms-edit" : "";
+  doc.getElementById("nav").classList.toggle("scrolled", y > 40);
+  // 網站 CSS 有平滑捲動，還原位置時先關掉，畫面才不會跳回頂端
+  doc.documentElement.style.scrollBehavior = "auto";
+  win.scrollTo(0, y);
+  doc.documentElement.style.scrollBehavior = "";
+  if (activePath && mode === "edit") {
+    // 正在編輯的欄位：在預覽中框起來（清單項目內的欄位找不到時，框整個項目）
+    let p = activePath, el;
+    while (p && !(el = doc.querySelector(`[data-f="${p}"]`))) p = p.includes(".") ? p.slice(0, p.lastIndexOf(".")) : "";
+    if (el) {
+      el.classList.add("cms-active");
+      // 從左邊欄位開始編輯時，預覽自動捲到那個位置
+      if (revealActive) {
+        revealActive = false;
+        const r = el.getBoundingClientRect();
+        if (r.bottom < 60 || r.top > win.innerHeight) el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }
+  }
+}
+
+// ---------- 工具列 ----------
+function setMode(m) {
+  mode = m;
+  $("mode-edit").setAttribute("aria-pressed", m === "edit");
+  $("mode-try").setAttribute("aria-pressed", m === "try");
+  $("mode-hint").textContent = m === "edit" ? "點網頁上的內容即可編輯" : "試用中：可以捲動、點選單和報名按鈕";
+  if (m === "try") activePath = null;
+  renderPreview();
+}
+$("mode-edit").onclick = () => setMode("edit");
+$("mode-try").onclick = () => setMode("try");
+
+function setView(v) {
+  $("main").dataset.view = v;
+  $("tab-edit").setAttribute("aria-selected", v === "edit");
+  $("tab-preview").setAttribute("aria-selected", v === "preview");
+}
+$("tab-edit").onclick = () => setView("edit");
+$("tab-preview").onclick = () => setView("preview");
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+$("save").onclick = () => {
+  saved = clone(state);
+  let note = "已儲存。正式版存檔後約 1～2 分鐘網站會更新";
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); }
+  catch { note = "已儲存（圖片較大，重新整理頁面後不會保留）"; }
+  changed();
+  toast(note);
+};
+
+let resetArmed = false, resetTimer;
+$("reset").onclick = () => {
+  const btn = $("reset");
+  if (!resetArmed) {
+    resetArmed = true; btn.textContent = "再按一次確認";
+    resetTimer = setTimeout(() => { resetArmed = false; btn.textContent = "重設"; }, 3000);
+    return;
+  }
+  clearTimeout(resetTimer); resetArmed = false; btn.textContent = "重設";
+  state = clone(DEFAULT); saved = clone(DEFAULT);
+  try { localStorage.removeItem(STORE_KEY); } catch {}
+  expanded.clear(); activePath = null;
+  current ? renderSection(current) : renderHome();
+  changed();
+  toast("已恢復成原始內容");
+};
+
+// ---------- 開始 ----------
+setupFrame();
+renderHome();
+changed();
+renderPreview();
+</script>

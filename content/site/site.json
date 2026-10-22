@@ -1,0 +1,108 @@
+{
+  "seo": {
+    "title": "林心悅 Yoga｜瑜珈老師",
+    "description": "林心悅瑜珈老師：哈達、流動、陰瑜珈與私人課程，找回身心的平衡。"
+  },
+  "brand": { "name": "心悅", "suffix": "Yoga" },
+  "hero": {
+    "eyebrow": "Breathe · Move · Be Present",
+    "title": "在呼吸之間\n找回身心的平衡",
+    "subtitle": "我是林心悅，一位 RYT-500 認證瑜珈老師。\n陪伴你用溫柔而穩定的方式，認識自己的身體。",
+    "image": "/uploads/hero.jpg",
+    "primaryLabel": "報名課程",
+    "secondaryLabel": "查看課程"
+  },
+  "about": {
+    "eyebrow": "About Me",
+    "heading": "關於心悅老師",
+    "image": "/uploads/teacher.jpg",
+    "paragraphs": [
+      "十年前，因為長期久坐與工作壓力，我第一次踏上瑜珈墊。從那天起，瑜珈成為我與自己對話的方式。之後我前往印度瑞詩凱詩進修，取得美國瑜珈聯盟 RYT-500 認證，並持續鑽研陰瑜珈與修復瑜珈。",
+      "我相信瑜珈不是追求完美的體式，而是學會傾聽身體。無論你是第一次接觸，或已練習多年，都能在課堂中找到屬於自己的節奏。"
+    ],
+    "stats": [
+      { "value": "10+", "label": "年練習經驗" },
+      { "value": "3,000+", "label": "小時教學時數" },
+      { "value": "800+", "label": "位學員" }
+    ],
+    "certs": ["RYT-500 美國瑜珈聯盟認證", "陰瑜珈師資認證", "孕婦瑜珈師資認證"]
+  },
+  "classes": {
+    "eyebrow": "Classes",
+    "heading": "課程介紹",
+    "intro": "依照你的需求與程度，選擇最適合的課程",
+    "items": [
+      {
+        "title": "哈達瑜珈 Hatha",
+        "tag": "初學友善",
+        "description": "從基礎體式與呼吸開始，建立正確的身體排列，適合第一次接觸瑜珈的你。",
+        "duration": "60 分鐘",
+        "price": "NT$ 450 / 堂",
+        "image": "/uploads/hatha.jpg"
+      },
+      {
+        "title": "流動瑜珈 Vinyasa",
+        "tag": "中階",
+        "description": "動作隨呼吸串連，提升肌力、柔軟度與專注力，在流動中釋放壓力。",
+        "duration": "75 分鐘",
+        "price": "NT$ 500 / 堂",
+        "image": "/uploads/vinyasa.jpg"
+      },
+      {
+        "title": "陰瑜珈 Yin",
+        "tag": "放鬆修復",
+        "description": "長時間停留的被動伸展，深入筋膜與關節，適合睡不好、容易緊繃的你。",
+        "duration": "75 分鐘",
+        "price": "NT$ 500 / 堂",
+        "image": "/uploads/yin.jpg"
+      },
+      {
+        "title": "私人客製課程",
+        "tag": "一對一",
+        "description": "依照你的身體狀況與目標量身規劃，可到府或線上，進步最有感。",
+        "duration": "60 分鐘",
+        "price": "NT$ 1,800 / 堂",
+        "image": "/uploads/private.jpg"
+      }
+    ]
+  },
+  "schedule": {
+    "eyebrow": "Schedule",
+    "heading": "每週課表",
+    "note": "地點：台北市大安區（報名後將提供詳細地址）",
+    "rows": [
+      { "time": "09:00", "mon": "", "tue": "哈達", "wed": "", "thu": "哈達", "fri": "", "sat": "流動" },
+      { "time": "12:30", "mon": "哈達", "tue": "", "wed": "流動", "thu": "", "fri": "陰瑜珈", "sat": "" },
+      { "time": "19:30", "mon": "流動", "tue": "陰瑜珈", "wed": "哈達", "thu": "流動", "fri": "", "sat": "陰瑜珈" }
+    ]
+  },
+  "testimonials": {
+    "eyebrow": "Testimonials",
+    "heading": "學員回饋",
+    "items": [
+      { "quote": "上了三個月的陰瑜珈，肩頸痠痛改善很多，睡眠品質也變好了。", "author": "王小姐，上班族" },
+      { "quote": "老師很細心，會注意每個人的姿勢，完全零基礎也不會害怕跟不上。", "author": "陳先生，工程師" },
+      { "quote": "私人課程依照我的腰傷調整動作，讓我重新找回運動的信心。", "author": "李太太，家管" }
+    ]
+  },
+  "cta": {
+    "heading": "準備好踏上瑜珈墊了嗎？",
+    "text": "首次體驗課享 8 折優惠，歡迎帶著好奇心來上課。",
+    "button": "立即報名體驗課"
+  },
+  "signup": {
+    "url": "https://line.me/R/ti/p/@xinyue.yoga"
+  },
+  "contact": {
+    "tagline": "用呼吸連結身與心。",
+    "email": "hello@example.com",
+    "phone": "0912-345-678",
+    "line": "@xinyue.yoga",
+    "socials": [
+      { "label": "Instagram", "url": "#" },
+      { "label": "Facebook", "url": "#" },
+      { "label": "YouTube", "url": "#" }
+    ],
+    "copyright": "© 2026 心悅 Yoga. All rights reserved."
+  }
+}
